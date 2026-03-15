@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>LUCID AI — Generate Roadmap</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="app-body">
+
+  <header class="dash-top">
+    <div class="wrap dash-top-inner">
+      <a class="dash-brand" href="app-roadmaps.html">
+        <span class="brand-icon">⌁</span>
+        <span class="brand-name">LUCID<span class="blue">AI</span></span>
+      </a>
+      <nav class="dash-nav">
+        <a class="active" href="app-roadmaps.html">Roadmaps</a>
+        <a href="app-projects.html">Projects</a>
+        <a href="app-problems.html">Problems</a>
+        <a href="app-community.html">Communities</a>
+        <a href="app-premium.html">Premium</a>
+      </nav>
+      <div class="dash-actions">
+        <button class="icon-btn" type="button">☾</button>
+        <button class="icon-btn" type="button">🙂</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap dash-main">
+    <a class="btn ghost" href="app-roadmaps.html">← Back</a>
+
+    <div class="create-head">
+      <h1 class="h1">Generate <span class="blue">New Roadmap</span></h1>
+      <p class="muted">Customize your learning journey based on your goals</p>
+    </div>
+
+    <div class="stepper">
+      <div class="step active"><span>1</span><div><b>Select Technology</b><p class="muted">Choose your learning focus</p></div></div>
+      <div class="line"></div>
+      <div class="step"><span>2</span><div><b>Duration & Level</b><p class="muted">Timeline + difficulty</p></div></div>
+      <div class="line"></div>
+      <div class="step"><span>3</span><div><b>Overview & Generate</b><p class="muted">Review and create roadmap</p></div></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h3>Choose A Technology</h3>
+        <a class="btn ghost" href="#">View All</a>
+      </div>
+
+      <div class="tabs">
+        <button class="tab active" type="button">Frontend</button>
+        <button class="tab" type="button">Backend</button>
+        <button class="tab" type="button">Database</button>
+        <button class="tab" type="button">Cloud</button>
+        <button class="tab" type="button">DevOps</button>
+        <button class="tab" type="button">AI/ML</button>
+      </div>
+
+      <div class="chips">
+        <button class="chip-btn active" type="button">React</button>
+        <button class="chip-btn" type="button">Angular</button>
+        <button class="chip-btn" type="button">TypeScript</button>
+        <button class="chip-btn" type="button">JavaScript</button>
+        <button class="chip-btn" type="button">HTML</button>
+        <button class="chip-btn" type="button">CSS</button>
+        <button class="chip-btn" type="button">Flutter</button>
+        <button class="chip-btn" type="button">UI/UX</button>
+      </div>
+
+      <div class="selected">
+        <span class="muted">Selected:</span>
+        <div class="select-box">React</div>
+      </div>
+
+      <div class="panel-foot">
+        <button class="btn primary" type="button" onclick="window.location.href='app-roadmap-detail.html'">Next Step →</button>
+      </div>
+    </div>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

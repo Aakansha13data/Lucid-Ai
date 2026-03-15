@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>LUCID AI — Courses</title>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body class="app">
+
+<header class="app-nav">
+  <div class="wrap nav-inner">
+    <a class="brand" href="index.html">
+      <span class="brand-name">LUCID<span class="blue">AI</span></span>
+    </a>
+    <nav class="app-links">
+      <a href="index.html">Home</a>
+      <a href="notes.html">Notes</a>
+      <a href="courses.html" class="active">Courses</a>
+      <a href="dashboard.html">Dashboard</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap notes-page">
+
+<h1 class="page-title">
+  🎓 LUCID <span class="blue">Professional Courses</span>
+</h1>
+
+<p class="page-sub">
+  Technical-only, industry-focused courses curated for engineers.
+</p>
+
+<div class="courses-controls">
+  <input id="filterInput" placeholder="Filter by tag or keyword" style="padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:#fff;width:100%;max-width:480px;" />
+</div>
+
+<section id="coursesGrid" class="notes-grid" style="margin-top:20px"></section>
+
+<script>
+// Require login client-side for UX (server will redirect too)
+let serverAvailable = true; // global flag for offline helper
+(async function(){
+  // check that backend is reachable; if not, show a banner but continue (offline mode)
+  try {
+    const health = await fetch('/api/health', { credentials: 'same-origin' });
+    if (!health.ok) throw new Error('health status ' + health.status);
+  } catch (err) {
+    serverAvailable = false;
+    const warn = document.createElement('div');
+    warn.style.cssText = 'padding:12px;background:#fee;color:#900;text-align:center;font-weight:bold';
+    warn.textContent = '⚠️ Running in offline mode – start the backend (node server.js) to enable enrollment persistence.';
+    document.body.prepend(warn);
+  }
+
+  // helper for offline storage
+  function getOfflineEnrolled(){
+    try { return JSON.parse(localStorage.getItem('offlineEnrolled')||'[]'); }
+    catch(e){ return []; }
+  }
+  function setOfflineEnrolled(arr){ localStorage.setItem('offlineEnrolled', JSON.stringify(arr)); }
+
+  let enrolledList = [];
+  if (serverAvailable) {
+    try{
+      const profile = await fetch('/api/profile', { credentials: 'same-origin' });
+      if (profile.status === 401) {
+        window.location.href = 'login.html';
+        return;
+      }
+      const pdata = await profile.json();
+      enrolledList = (pdata.user && pdata.user.enrolled) ? pdata.user.enrolled : [];
+
+      // attempt to sync any offline enrollments saved in localStorage
+      let offlineIds = getOfflineEnrolled();
+      if (offlineIds.length) {
+        for (const id of offlineIds) {
+          if (!enrolledList.includes(id)) {
+            try {
+              const r = await fetch('/api/enroll', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify({ courseId: id })
+              });
+              if (r.ok) {
+                enrolledList.push(id);
+              }
+            } catch(e) {
+              console.warn('Sync failed for', id, e);
+            }
+          }
+        }
+        // clear offline storage once synced
+        setOfflineEnrolled([]);
+      }
+    }catch(e){ window.location.href='login.html'; return; }
+  }
+
+  // merge with offline list
+  const offlineIds = getOfflineEnrolled();
+  offlineIds.forEach(id => { if (!enrolledList.includes(id)) enrolledList.push(id); });
+
+  // Load courses JSON
+  const res = await fetch('/data/courses.json');
+  const courses = await res.json();
+
+  const grid = document.getElementById('coursesGrid');
+
+  function render(list) {
+    grid.innerHTML = '';
+    list.forEach((c, idx) => {
+      const el = document.createElement('div');
+      el.className = 'note-card reveal course-card';
+      el.innerHTML = `
+        <div style="display:flex;gap:14px;align-items:center">
+          <img src="${c.thumbnail}" alt="${c.title}" style="width:140px;height:80px;object-fit:cover;border-radius:10px;" />
+          <div style="flex:1">
+            <h3 style="margin:0 0 6px">${c.title}</h3>
+            <div style="font-size:13px;color:var(--muted);margin-bottom:8px">${c.level} • ${c.duration} • ${c.tags.join(', ')}</div>
+            <p style="margin:0;color:var(--muted);font-size:14px">${c.description}</p>
+          </div>
+        </div>
+        <div class="note-actions">
+          <a class="btn small" href="courses/${c.id}.html">View Course</a>
+          ${ enrolledList.includes(c.id) ? `<button class="btn ghost small" disabled>Enrolled</button>` : `<button class="btn ghost small" onclick="enroll('${c.id}', this)">Enroll</button>` }
+        </div>
+      `;
+      // stagger animation delays
+      el.style.animationDelay = (0.12 * (idx+1)) + 's';
+      grid.appendChild(el);
+    });
+
+    // setup reveal observer
+    const obs = new IntersectionObserver((entries)=>{
+      entries.forEach(en=>{
+        if(en.isIntersecting) en.target.classList.add('show');
+      });
+    },{threshold:0.12});
+    document.querySelectorAll('.reveal').forEach(n=>obs.observe(n));
+  }
+
+  render(courses);
+
+  // Filter
+  const input = document.getElementById('filterInput');
+  input.addEventListener('input', () => {
+    const q = input.value.trim().toLowerCase();
+    if(!q) return render(courses);
+    const filtered = courses.filter(c => (
+      c.title.toLowerCase().includes(q) ||
+      c.description.toLowerCase().includes(q) ||
+      c.tags.join(' ').toLowerCase().includes(q)
+    ));
+    render(filtered);
+  });
+})();
+
+// bring utility functions outside IIFE for enroll
+function getOfflineEnrolled(){
+  try { return JSON.parse(localStorage.getItem('offlineEnrolled')||'[]'); }
+  catch(e){ return []; }
+}
+function setOfflineEnrolled(arr){ localStorage.setItem('offlineEnrolled', JSON.stringify(arr)); }
+
+async function enroll(courseId, btn) {
+  btn.disabled = true; btn.textContent = 'Enrolling...';
+  function saveOffline(id){
+    const arr = getOfflineEnrolled();
+    if (!arr.includes(id)) { arr.push(id); setOfflineEnrolled(arr); }
+  }
+
+  try {
+    if (!serverAvailable) throw new Error('offline');
+    const res = await fetch('/api/enroll', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ courseId })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      console.log('✓ Enrollment successful for', courseId);
+      btn.textContent = 'Enrolled ✓';
+      btn.className = 'btn small';
+      btn.disabled = true;
+      setTimeout(() => {
+        window.location.href = '/courses/' + courseId + '.html';
+      }, 800);
+      return;
+    } else {
+      console.error('Enroll failed:', data.error);
+      alert('Error: ' + (data.error || 'Enrollment failed'));
+      btn.disabled = false; btn.textContent = 'Enroll';
+      return;
+    }
+  } catch (err) {
+    console.warn('Enroll error (will try offline):', err);
+    saveOffline(courseId);
+    alert('💾 Enrollment saved locally. Will sync when server is available.');
+    btn.textContent = 'Enrolled (offline)';
+    btn.className = 'btn ghost small';
+    btn.disabled = true;
+  }
+}
+</script>
+
+</main>
+
+</body>
+</html>

@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>LUCID AI — Login</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="app-body">
+
+  <header class="app-top">
+    <div class="wrap app-top-inner">
+      <a class="btn ghost" href="index.html">← Back to Home</a>
+    </div>
+  </header>
+
+  <main class="app-center">
+    <div class="auth-card">
+      <div class="pill-row">
+        <span class="pill soft"><span class="dot"></span> Secure Login</span>
+      </div>
+
+      <div class="auth-tabs">
+        <button class="tab active" onclick="showLogin()">Login</button>
+        <button class="tab" onclick="showSignup()">Sign Up</button>
+      </div>
+
+      <div id="loginForm">
+        <h1 class="auth-title">Welcome <span class="blue">Back</span></h1>
+        <p class="muted center">
+          Continue your learning journey with AI-powered roadmaps, projects, notes, and practice.
+        </p>
+
+        <form class="auth-form" onsubmit="login(event)">
+          <label class="field">
+            <span class="label">Username</span>
+            <input id="loginUsername" class="input" type="text" placeholder="Enter your username" required />
+          </label>
+
+          <label class="field">
+            <span class="label">Password</span>
+            <div class="input-row">
+              <input id="loginPwd" class="input" type="password" placeholder="Enter your password" required />
+              <button id="togglePwd" class="icon-btn" type="button" aria-label="Toggle password" onclick="togglePassword('loginPwd')">👁</button>
+            </div>
+          </label>
+
+          <button class="btn primary full" type="submit" id="loginBtn">
+            Sign In →
+          </button>
+
+          <div id="loginError" style="color:#ff6b6b;font-size:13px;margin-top:8px;display:none;text-align:center;"></div>
+
+          <a class="link center" href="#">Forgot Password?</a>
+        </form>
+      </div>
+
+      <div id="signupForm" style="display: none;">
+        <h1 class="auth-title">Join <span class="blue">LUCID AI</span></h1>
+        <p class="muted center">
+          Start your AI-powered learning journey today.
+        </p>
+
+        <form class="auth-form" onsubmit="signup(event)">
+          <label class="field">
+            <span class="label">Username</span>
+            <input id="signupUsername" class="input" type="text" placeholder="Choose a username" required />
+          </label>
+
+          <label class="field">
+            <span class="label">Password</span>
+            <div class="input-row">
+              <input id="signupPwd" class="input" type="password" placeholder="Create a password" required />
+              <button class="icon-btn" type="button" aria-label="Toggle password" onclick="togglePassword('signupPwd')">👁</button>
+            </div>
+          </label>
+
+          <button class="btn primary full" type="submit">
+            Create Account →
+          </button>
+        </form>
+      </div>
+
+      <div class="divider"><span>Or continue with</span></div>
+
+      <div class="social-row">
+        <button class="btn ghost full" type="button">G Google</button>
+        <button class="btn ghost full" type="button">⌂ GitHub</button>
+      </div>
+
+      <p class="muted center" style="margin-top:12px;">
+        <span id="switchText">Don’t have an account? <a class="link" href="#" onclick="showSignup()">Sign Up</a></span>
+      </p>
+    </div>
+  </main>
+
+  <script>
+function showLogin() {
+  document.getElementById('loginForm').style.display = 'block';
+  document.getElementById('signupForm').style.display = 'none';
+  document.querySelectorAll('.tab')[0].classList.add('active');
+  document.querySelectorAll('.tab')[1].classList.remove('active');
+  document.getElementById('switchText').innerHTML = 'Don\'t have an account? <a class="link" href="#" onclick="showSignup()">Sign Up</a>';
+}
+
+function showSignup() {
+  document.getElementById('loginForm').style.display = 'none';
+  document.getElementById('signupForm').style.display = 'block';
+  document.querySelectorAll('.tab')[0].classList.remove('active');
+  document.querySelectorAll('.tab')[1].classList.add('active');
+  document.getElementById('switchText').innerHTML = 'Already have an account? <a class="link" href="#" onclick="showLogin()">Login</a>';
+}
+
+async function login(event) {
+  event.preventDefault();
+  const username = document.getElementById('loginUsername').value;
+  const password = document.getElementById('loginPwd').value;
+  const errorDiv = document.getElementById('loginError');
+  const btn = document.getElementById('loginBtn');
+
+  errorDiv.style.display = 'none';
+  btn.disabled = true;
+  btn.textContent = 'Signing in...';
+
+  try {
+    const response = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+
+    const data = await response.json();
+    if (response.ok) {
+      window.location.href = 'dashboard.html';
+    } else {
+      errorDiv.textContent = data.message || 'Login failed. Check your username and password.';
+      errorDiv.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Sign In →';
+    }
+  } catch (error) {
+    errorDiv.textContent = 'Error: Unable to reach server. Please try again.';
+    errorDiv.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Sign In →';
+  }
+}
+
+async function signup(event) {
+  event.preventDefault();
+  const username = document.getElementById('signupUsername').value;
+  const password = document.getElementById('signupPwd').value;
+
+  try {
+    const response = await fetch('/api/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+
+    const data = await response.json();
+    if (response.ok) {
+      alert('Account created! Please login.');
+      showLogin();
+      document.getElementById('loginUsername').value = username;
+    } else {
+      alert('Signup failed: ' + (data.error || 'Please try again'));
+    }
+  } catch (error) {
+    alert('Error: Unable to reach server. Please try again.');
+  }
+}
+
+function togglePassword(inputId) {
+  const input = document.getElementById(inputId);
+  input.type = input.type === 'password' ? 'text' : 'password';
+}
+  </script>
+</body>
+</html>

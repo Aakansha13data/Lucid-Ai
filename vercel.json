@@ -1,0 +1,14 @@
+{
+  "buildCommand": "echo 'Ready'",
+  "framework": "express",
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/server.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/server.js"
+    }
+  ]
+}

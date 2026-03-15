@@ -1,0 +1,516 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>LUCID AI — Auto Lectures</title>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body class="app">
+
+<header class="app-nav">
+  <div class="wrap nav-inner">
+    <a class="brand" href="index.html">
+      <span class="brand-name">LUCID<span class="blue">AI</span></span>
+    </a>
+    <nav class="app-links">
+      <a href="index.html">Home</a>
+      <a href="notes.html">Notes</a>
+      <a href="lectures.html" class="active">AI Lectures</a>
+      <a href="courses.html">Courses</a>
+      <a href="dashboard.html">Dashboard</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap notes-page">
+
+<h1 class="page-title">
+  🎓 LUCID <span class="blue">AI Lectures</span>
+</h1>
+
+<p class="page-sub">
+  Automatically generated educational lectures with AI voice in 4+ languages.
+</p>
+
+<!-- Generate New Lecture Section -->
+<div class="video-search" style="margin-bottom: 40px;">
+  <h3>Generate a New Lecture</h3>
+  <p>Enter any topic and we'll auto-generate a complete lecture with script, visuals, and voice in multiple languages.</p>
+  
+  <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
+    <input type="text" id="lectureTopicInput" placeholder="Topic (e.g., Quantum Physics, Web Development)" style="flex: 1; min-width: 250px; padding: 12px 16px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); color: #fff;" />
+    
+    <select id="lectureLevel" style="padding: 12px 16px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); color: #fff;">
+      <option value="beginner">Beginner</option>
+      <option value="intermediate" selected>Intermediate</option>
+      <option value="advanced">Advanced</option>
+    </select>
+
+    <select id="lectureDuration" style="padding: 12px 16px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); color: #fff;">
+      <option value="3">3 minutes</option>
+      <option value="5" selected>5 minutes</option>
+      <option value="10">10 minutes</option>
+      <option value="15">15 minutes</option>
+    </select>
+  </div>
+
+  <div style="display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;">
+    <label style="display: flex; align-items: center; gap: 8px; color: var(--muted);">
+      <input type="checkbox" id="langEN" checked value="en" /> English
+    </label>
+    <label style="display: flex; align-items: center; gap: 8px; color: var(--muted);">
+      <input type="checkbox" id="langES" checked value="es" /> Spanish
+    </label>
+    <label style="display: flex; align-items: center; gap: 8px; color: var(--muted);">
+      <input type="checkbox" id="langFR" checked value="fr" /> French
+    </label>
+    <label style="display: flex; align-items: center; gap: 8px; color: var(--muted);">
+      <input type="checkbox" id="langDE" checked value="de" /> German
+    </label>
+  </div>
+
+  <button id="generateLectureBtn" class="btn" style="padding: 14px 24px; font-size: 16px;">
+    <span>Generate Complete Lecture</span>
+  </button>
+</div>
+
+<!-- Status / Results -->
+<div id="generationStatus" style="display: none; background: rgba(62,207,142,0.1); border: 1px solid #3ecf8e; border-radius: 12px; padding: 20px; margin-bottom: 40px;">
+  <h4 id="statusTitle" style="margin-top: 0;">Generating your lecture...</h4>
+  <p id="statusMessage" style="color: var(--muted); margin: 8px 0;">This may take 1–3 minutes.</p>
+  <div id="generationProgress" style="background: var(--border); height: 6px; border-radius: 3px; overflow: hidden; margin-top: 12px;">
+    <div style="background: #3ecf8e; height: 100%; width: 33%; animation: slideIn 0.6s ease;" id="progressBar"></div>
+  </div>
+</div>
+
+<!-- Generated Lectures List -->
+<div style="margin-top: 40px;">
+  <h2 style="font-size: 24px; font-weight: 800; margin-bottom: 20px;">Generated Lectures</h2>
+
+  <div id="lecturesGrid" class="notes-grid">
+    <!-- Populated by script -->
+  </div>
+
+  <div id="emptyState" style="text-align: center; padding: 60px 20px; color: var(--muted);">
+    <div style="font-size: 48px; margin-bottom: 16px;">📚</div>
+    <h3>No lectures yet</h3>
+    <p>Generate your first lecture above to get started.</p>
+  </div>
+</div>
+
+</main>
+
+<script>
+// Check authentication on page load
+async function checkAuth() {
+  try {
+    const res = await fetch('/api/lectures', { credentials: 'same-origin' });
+    if (res.status === 401) {
+      window.location.href = '/login.html?redirect=lectures.html';
+      return false;
+    }
+    return true;
+  } catch (e) {
+    console.error('Auth check failed:', e);
+    return false;
+  }
+}
+
+// Initialize page
+let generatedLectures = [];
+let isGenerating = false;
+
+document.getElementById('generateLectureBtn').addEventListener('click', async () => {
+  const topic = document.getElementById('lectureTopicInput').value.trim();
+  const level = document.getElementById('lectureLevel').value;
+  const duration = parseInt(document.getElementById('lectureDuration').value);
+
+  if (!topic) {
+    alert('Please enter a topic');
+    return;
+  }
+
+  // Get selected languages
+  const languages = [];
+  ['EN', 'ES', 'FR', 'DE'].forEach(lang => {
+    if (document.getElementById('lang' + lang)?.checked) {
+      languages.push(document.getElementById('lang' + lang).value);
+    }
+  });
+
+  if (languages.length === 0) {
+    alert('Select at least one language');
+    return;
+  }
+
+  isGenerating = true;
+  const btn = document.getElementById('generateLectureBtn');
+  btn.disabled = true;
+  btn.querySelector('span').textContent = 'Generating...';
+  
+  document.getElementById('generationStatus').style.display = 'block';
+  document.getElementById('statusMessage').textContent = `Generating a ${duration}-minute ${level} lecture on "${topic}" in ${languages.length} languages...`;
+
+  try {
+    const res = await fetch('/api/generate-lecture', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({
+        topic,
+        level,
+        duration,
+        languages
+      })
+    });
+
+    if (res.status === 401) {
+      alert('Please login');
+      window.location.href = 'login.html';
+      return;
+    }
+
+    const data = await res.json();
+    if (res.ok) {
+      // Add to mock lecture list
+      const lecture = {
+        id: data.jobId,
+        topic,
+        level,
+        duration,
+        languages,
+        createdAt: new Date(),
+        status: 'generating'
+      };
+      generatedLectures.unshift(lecture);
+
+      document.getElementById('statusTitle').textContent = '✓ Lecture generation started!';
+      document.getElementById('statusMessage').textContent = `Your ${duration}-minute lecture on "${topic}" will be ready shortly. Check back in a moment!`;
+      document.getElementById('progressBar').style.width = '100%';
+      document.getElementById('progressBar').style.background = '#3ecf8e';
+
+    // Step 2: Poll for lecture data
+    let pollCount = 0;
+    const pollInterval = setInterval(async () => {
+      pollCount++;
+      try {
+        const statusRes = await fetch(`/api/lectures/${data.jobId}`, {
+          credentials: 'same-origin'
+        });
+        
+        if (statusRes.ok) {
+          const lectureData = await statusRes.json();
+          
+          if (lectureData.status === 'completed') {
+            clearInterval(pollInterval);
+            // Update the lecture with real data from server
+            const idx = generatedLectures.findIndex(l => l.id === data.jobId);
+            if (idx >= 0) {
+              generatedLectures[idx] = {
+                id: lectureData.id,
+                topic: lectureData.topic,
+                level: lectureData.metadata?.level || lecture.level,
+                duration: lectureData.metadata?.duration || lecture.duration,
+                languages: lectureData.metadata?.languages || lecture.languages,
+                createdAt: new Date(lectureData.metadata?.createdAt),
+                status: 'completed',
+                videoUrl: lectureData.videoUrl,
+                script: lectureData.script,
+                audio: lectureData.audio,
+                visuals: lectureData.visuals
+              };
+              renderLectures();
+            }
+            
+            document.getElementById('statusTitle').textContent = '✓ Lecture ready!';
+            document.getElementById('statusMessage').textContent = `Your "${topic}" lecture is ready to play!`;
+            document.getElementById('progressBar').style.background = '#3ecf8e';
+          } else if (lectureData.status === 'failed') {
+            clearInterval(pollInterval);
+            alert('Lecture generation failed: ' + lectureData.error);
+          }
+        }
+      } catch (e) {
+        console.log('Poll status:', pollCount, e.message);
+      }
+      
+      if (pollCount > 120) clearInterval(pollInterval); // Stop after 2 minutes
+    }, 1000);
+
+      renderLectures();
+      document.getElementById('lectureTopicInput').value = '';
+    } else {
+      alert('Error: ' + data.error);
+    }
+  } catch (error) {
+    alert('Failed to generate lecture: ' + error.message);
+  } finally {
+    isGenerating = false;
+    btn.disabled = false;
+    btn.querySelector('span').textContent = 'Generate Complete Lecture';
+  }
+});
+
+function renderLectures() {
+  const grid = document.getElementById('lecturesGrid');
+  const empty = document.getElementById('emptyState');
+
+  if (generatedLectures.length === 0) {
+    grid.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+
+  empty.style.display = 'none';
+  grid.innerHTML = generatedLectures.map(lecture => {
+    let thumbUrl = '';
+    if (lecture.videoUrl && lecture.videoUrl.includes('youtube')) {
+      const videoId = lecture.videoUrl.split('embed/')[1];
+      if (videoId) {
+        thumbUrl = `https://img.youtube.com/vi/${videoId}/0.jpg`;
+      }
+    }
+    
+    return `
+    <div class="note-card reveal" style="animation-delay: ${(generatedLectures.indexOf(lecture) * 0.1)}s;">
+      ${thumbUrl ? `<div style="margin-bottom:12px;"><img src="${thumbUrl}" style="width:100%;border-radius:4px;object-fit:cover;height:150px;" onerror="this.style.display='none'"></div>` : ''}
+      <div style="margin-bottom: 12px;">
+        <h3 style="margin: 0 0 6px; font-size: 18px;">${lecture.topic}</h3>
+        <div style="font-size: 12px; color: var(--muted); margin-bottom: 8px;">
+          ${lecture.duration || 5} minutes • ${(lecture.level || 'intermediate').charAt(0).toUpperCase() + (lecture.level || 'intermediate').slice(1)}
+        </div>
+      </div>
+
+      <div style="margin-bottom: 12px;">
+        <p style="font-size: 12px; color: var(--muted); margin: 0 0 8px;">Languages:</p>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+          ${(lecture.languages || []).map(lang => {
+            const langNames = { en: 'English', es: 'Español', fr: 'Français', de: 'Deutsch' };
+            return `<span style="background: var(--border); padding: 4px 8px; border-radius: 4px; font-size: 11px;">${langNames[lang] || lang}</span>`;
+          }).join('')}
+        </div>
+      </div>
+
+      <div style="margin-bottom: 12px;">
+        <p style="font-size: 12px; color: var(--muted); margin: 0 0 8px;">Includes:</p>
+        <ul style="margin: 0; padding-left: 16px; font-size: 12px; color: var(--muted);">
+          <li>Detailed script</li>
+          <li>AI voice narration</li>
+          <li>Professional visuals</li>
+          <li>Multi-language support</li>
+        </ul>
+      </div>
+
+      <div style="padding-top: 12px; border-top: 1px solid var(--border); display: flex; gap: 8px;">
+        <button class="btn small" onclick="playLecture('${lecture.id}')" style="flex: 1;">▶ Watch</button>
+        <button class="btn ghost small" onclick="downloadLecture('${lecture.id}')" style="flex: 1;">⬇ Download</button>
+        <button class="btn ghost small" onclick="shareLecture('${lecture.id}')" style="flex: 1;">🔗 Share</button>
+      </div>
+    </div>
+  `;
+  }).join('');
+
+  // Setup reveal observer
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(en => {
+      if (en.isIntersecting) en.target.classList.add('show');
+    });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(n => obs.observe(n));
+}
+
+function playLecture(lectureId) {
+  const lecture = generatedLectures.find(l => l.id === lectureId);
+  if (!lecture) {
+    alert('Lecture not found');
+    return;
+  }
+  
+  // Create modal for video player
+  const modal = document.createElement('div');
+  modal.style.cssText = `
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.8); display: flex; align-items: center;
+    justify-content: center; z-index: 10000; padding: 20px;
+  `;
+  
+  const content = document.createElement('div');
+  content.style.cssText = `
+    background: var(--bg); border-radius: 8px; padding: 20px;
+    max-width: 900px; width: 100%; max-height: 90vh; overflow-y: auto;
+  `;
+  
+  const closeBtn = document.createElement('button');
+  closeBtn.textContent = '✕ Close';
+  closeBtn.style.cssText = `
+    float: right; background: none; border: none; font-size: 24px;
+    cursor: pointer; color: var(--text); padding: 0; width: 30px; height: 30px;
+  `;
+  closeBtn.onclick = () => modal.remove();
+  
+  const header = document.createElement('div');
+  header.style.cssText = 'margin-bottom: 16px;';
+  
+  // Determine status badge based on API setup
+  let statusBadge = '<span style="font-size: 12px; background: #3ecf8e; color: #000; padding: 4px 8px; border-radius: 4px;">🤖 AI Generated</span>';
+  if (lecture.apiSetup) {
+    const { videoGeneration, audioGeneration, scriptGeneration } = lecture.apiSetup;
+    if (videoGeneration.includes('Not Configured')) {
+      statusBadge = '<span style="font-size: 12px; background: rgba(255,200,0,0.2); color: #ffc800; padding: 4px 8px; border-radius: 4px;">📺 Educational (Setup Required)</span>';
+    }
+  }
+  
+  header.innerHTML = `
+    <h2 style="margin: 0 0 8px; display: flex; align-items: center; gap: 12px;">
+      ${lecture.topic}
+      ${statusBadge}
+    </h2>
+    <p style="margin: 0; font-size: 12px; color: var(--muted);">${lecture.metadata?.level || 'Intermediate'} • ${lecture.metadata?.duration || 5} min • Languages: ${(lecture.metadata?.languages || ['en']).join(', ')}</p>
+    ${lecture.apiSetup && lecture.apiSetup.videoGeneration.includes('Not Configured') ? `<p style="margin: 4px 0 0; font-size: 11px; color: #ffc800;">⚠️ Video generation API not configured. Using educational YouTube content. To enable real AI video generation, add RunwayML API key to .env</p>` : ''}
+  `;
+  
+  const videoContainer = document.createElement('div');
+  videoContainer.style.cssText = `margin-bottom: 20px;`;
+  
+  // Handle different video types
+  if (lecture.videoUrl && typeof lecture.videoUrl === 'string' && lecture.videoUrl.includes('<div')) {
+    // HTML embed (mock AI video)
+    videoContainer.innerHTML = lecture.videoUrl;
+  } else if (lecture.videoUrl && lecture.videoUrl.includes('youtube')) {
+    // YouTube embed
+    const videoId = lecture.videoUrl.split('embed/')[1];
+    videoContainer.innerHTML = `
+      <div style="position: relative; width: 100%; padding-bottom: 56.25%; height: 0; border-radius: 8px; overflow: hidden;">
+        <iframe style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;" 
+          src="https://www.youtube.com/embed/${videoId}?autoplay=1" 
+          allow="autoplay; encrypted-media" allowfullscreen></iframe>
+      </div>
+    `;
+  } else if (lecture.videoUrl) {
+    // Direct video file URL
+    videoContainer.innerHTML = `
+      <video controls style="width: 100%; border-radius: 8px; background: #000;">
+        <source src="${lecture.videoUrl}" type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
+    `;
+  } else {
+    videoContainer.innerHTML = '<p style="color: var(--muted); text-align: center; padding: 40px;">Video not available</p>';
+  }
+  
+  const info = document.createElement('div');
+  info.style.cssText = 'margin-top: 20px; border-top: 1px solid var(--border); padding-top: 20px;';
+  
+  // Build API status section
+  let apiStatusHTML = '';
+  if (lecture.apiSetup) {
+    const { videoGeneration, audioGeneration, scriptGeneration } = lecture.apiSetup;
+    const hasFullAI = lecture.isFullyAIGenerated;
+    
+    apiStatusHTML = `
+      <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 6px; margin-bottom: 16px;">
+        <h4 style="margin: 0 0 8px 0; font-size: 12px; text-transform: uppercase; color: var(--muted);">Generation Status</h4>
+        <p style="margin: 4px 0; font-size: 13px;"><strong>Video:</strong> <span style="color: ${videoGeneration.includes('Not') ? '#ffc800' : '#3ecf8e'}">${videoGeneration}</span></p>
+        <p style="margin: 4px 0; font-size: 13px;"><strong>Audio:</strong> <span style="color: ${audioGeneration.includes('Not') ? '#999' : '#3ecf8e'}">${audioGeneration}</span></p>
+        <p style="margin: 4px 0; font-size: 13px;"><strong>Script:</strong> <span style="color: ${scriptGeneration.includes('Not') ? '#999' : '#3ecf8e'}">${scriptGeneration}</span></p>
+        ${!hasFullAI ? `
+          <p style="margin: 12px 0 0 0; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 11px; color: #ffc800;">
+            ⚠️ <strong>To enable full AI video generation:</strong><br/>
+            1. Get RunwayML API key from <a href="https://runwayml.com/login" target="_blank" style="color: #38d26a;">runwayml.com</a><br/>
+            2. Add to .env: RUNWAY_API_KEY=your_key<br/>
+            3. Restart server for changes to apply
+          </p>
+        ` : ''}
+      </div>
+    `;
+  }
+  
+  info.innerHTML = `
+    <h3>Lecture Details</h3>
+    <p><strong>Status:</strong> ${lecture.status}</p>
+    ${apiStatusHTML}
+    ${lecture.script ? `<h3 style="margin-top: 20px;">Script Preview</h3>
+    <p><strong>${lecture.script.title}</strong></p>
+    <p>${(lecture.script.summary || 'AI-generated educational content').substring(0, 300)}...</p>` : ''}
+    ${lecture.isFullyAIGenerated ? '<p style="color: #3ecf8e; font-size: 12px;"><strong>✅ This lecture was generated with real AI models (GPT-4, ElevenLabs, RunwayML)</strong></p>' : '<p style="color: #ffc800; font-size: 12px;"><strong>📺 Using educational YouTube content. Configure API keys for full AI generation.</strong></p>'}
+    ${lecture.generationErrors && (lecture.generationErrors.script || lecture.generationErrors.visuals || lecture.generationErrors.audio) ?
+      `<div style="margin-top:12px;padding:8px;background:rgba(255,0,0,0.1);border-radius:4px;">
+        <strong>⚠️ Generation warnings:</strong>
+        ${lecture.generationErrors.script ? `<p style="margin:4px 0 0 0;font-size:11px;color:#a00">Script: ${lecture.generationErrors.script}</p>` : ''}
+        ${lecture.generationErrors.audio ? `<p style="margin:4px 0 0 0;font-size:11px;color:#a00">Audio: ${lecture.generationErrors.audio}</p>` : ''}
+        ${lecture.generationErrors.visuals ? `<p style="margin:4px 0 0 0;font-size:11px;color:#a00">Visuals: ${lecture.generationErrors.visuals}</p>` : ''}
+      </div>` : ''}
+  `;
+  
+  content.appendChild(closeBtn);
+  content.appendChild(header);
+  content.appendChild(videoContainer);
+  content.appendChild(info);
+  
+  modal.appendChild(content);
+  document.body.appendChild(modal);
+  
+  modal.onclick = (e) => {
+    if (e.target === modal) modal.remove();
+  };
+}
+
+function downloadLecture(lectureId) {
+  alert('📥 Downloading lecture: ' + lectureId + '\\n\\nYou can download:\\n✓ Video file (MP4)\\n✓ Audio tracks (MP3)\\n✓ Script (PDF)\\n✓ Subtitles (VTT)');
+}
+
+function shareLecture(lectureId) {
+  alert('🔗 Share link copied!\\n\\nShare this lecture with:\\n- Students\\n- Colleagues\\n- Social media\\n\\nAccess control: Private / Course Only / Public');
+}
+
+// Render initial state
+// Load lectures from API on startup
+async function loadLectures() {
+  try {
+    const res = await fetch('/api/lectures', {
+      credentials: 'same-origin'
+    });
+    
+    if (res.status === 401) {
+      // Not logged in
+      const authSection = document.createElement('div');
+      authSection.style.cssText = `
+        text-align:center; padding: 40px 20px; background: rgba(62,207,142,0.1);
+        border-radius: 12px; border: 1px solid #3ecf8e; margin: 30px 0;
+      `;
+      authSection.innerHTML = `
+        <h3>Please Log In to Generate Lectures</h3>
+        <p>You must be authenticated to view and generate AI lectures.</p>
+        <a href="login.html" class="btn" style="display: inline-block; padding: 12px 24px;">🔐 Go to Login</a>
+      `;
+      const grid = document.getElementById('lecturesGrid');
+      grid.parentNode.insertBefore(authSection, grid);
+      return;
+    }
+    
+    if (res.ok) {
+      const lectures = await res.json();
+      generatedLectures = lectures;
+      renderLectures();
+    } else {
+      console.error('Failed to load lectures:', res.status);
+    }
+  } catch (e) {
+    console.error('Failed to load lectures:', e);
+    renderLectures(); // Show empty state
+  }
+}
+
+loadLectures();
+</script>
+
+<style>
+@keyframes slideIn {
+  0% { width: 0; }
+  100% { width: 100%; }
+}
+</style>
+
+</body>
+</html>

@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>LUCID AI — Dashboard</title>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body class="app">
+<header class="app-nav">
+  <div class="wrap nav-inner">
+    <a class="brand" href="index.html">
+      <span class="brand-name">LUCID<span class="blue">AI</span></span>
+    </a>
+    <nav class="app-links">
+      <a href="index.html">Home</a>
+      <a href="notes.html">Notes</a>
+      <a href="courses.html">Courses</a>
+      <a href="dashboard.html" class="active">Dashboard</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap notes-page">
+  <h1 class="page-title">Your Dashboard</h1>
+  <p class="page-sub">Quick access to your enrolled technical courses.</p>
+
+  <div id="dashboardArea">
+    <div id="loading">Loading your courses…</div>
+    <div id="enrolledGrid" class="notes-grid" style="margin-top:18px"></div>
+  </div>
+</main>
+
+<script>
+let serverAvailable = true;
+function getOfflineEnrolled(){
+  try{return JSON.parse(localStorage.getItem('offlineEnrolled')||'[]');}catch(e){return[];}
+}
+function setOfflineEnrolled(arr){localStorage.setItem('offlineEnrolled', JSON.stringify(arr));}
+(async function(){
+  try {
+    const health = await fetch('/api/health', { credentials: 'same-origin' });
+    if (!health.ok) throw new Error('health status ' + health.status);
+  } catch (e) {
+    serverAvailable = false;
+    const warn = document.createElement('div');
+    warn.style.cssText = 'padding:12px;background:#fee;color:#900;text-align:center;font-weight:bold';
+    warn.textContent = '⚠️ Offline mode – start backend to sync changes.';
+    document.body.prepend(warn);
+  }
+
+
+  try{
+    let enrolled = [];
+    if (serverAvailable) {
+      const profileRes = await fetch('/api/profile', { credentials: 'same-origin' });
+      if (profileRes.status === 401) { window.location.href = 'login.html'; return; }
+      const profile = await profileRes.json();
+      enrolled = (profile.user && profile.user.enrolled) ? profile.user.enrolled : [];
+    }
+    // merge offline
+    const offlineIds = getOfflineEnrolled();
+    offlineIds.forEach(id =>{ if (!enrolled.includes(id)) enrolled.push(id); });
+
+    const dataRes = await fetch('/data/courses.json');
+    const courses = await dataRes.json();
+    const my = courses.filter(c => enrolled.includes(c.id));
+
+    const grid = document.getElementById('enrolledGrid');
+    document.getElementById('loading').style.display = 'none';
+
+    if (my.length === 0) {
+      grid.innerHTML = '<div class="note-card">You are not enrolled in any courses yet. Browse <a href="/courses.html">Courses</a>.</div>';
+      return;
+    }
+
+    my.forEach(c => {
+      const el = document.createElement('div');
+      el.className = 'note-card';
+      el.innerHTML = `
+        <div style="display:flex;gap:14px;align-items:center">
+          <img src="${c.thumbnail}" alt="${c.title}" style="width:140px;height:80px;object-fit:cover;border-radius:10px;" />
+          <div style="flex:1">
+            <h3 style="margin:0 0 6px">${c.title}</h3>
+            <div style="font-size:13px;color:var(--muted);margin-bottom:8px">${c.level} • ${c.duration}</div>
+            <p style="margin:0;color:var(--muted);font-size:14px">${c.description}</p>
+          </div>
+        </div>
+        <div class="note-actions">
+          <a class="btn small" href="/courses/${c.id}.html">Open Course</a>
+          <button class="btn ghost small" onclick="unenroll('${c.id}', this)">Unenroll</button>
+        </div>
+      `;
+      grid.appendChild(el);
+    });
+  }catch(err){ document.getElementById('dashboardArea').innerHTML = '<div class="note-card">Failed to load dashboard</div>'; }
+})();
+
+async function unenroll(courseId, btn){
+  if(!confirm('Unenroll from this course?')) return;
+  btn.disabled = true; btn.textContent = 'Please wait…';
+  try{
+    if (!serverAvailable) throw new Error('offline');
+    const res = await fetch('/api/unenroll', { method: 'POST', credentials: 'same-origin', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ courseId }) });
+    if(res.ok){
+      // also remove from offline list if present
+      const arr = getOfflineEnrolled().filter(id => id !== courseId);
+      setOfflineEnrolled(arr);
+      location.reload();
+    } else { const d = await res.json(); alert('Error: '+(d.error||'Failed')); btn.disabled=false; btn.textContent='Unenroll'; }
+  }catch(e){
+    alert('Offline: unenrolled locally.');
+    const arr = getOfflineEnrolled().filter(id => id !== courseId);
+    setOfflineEnrolled(arr);
+    location.reload();
+  }
+}
+</script>
+
+</body>
+</html>

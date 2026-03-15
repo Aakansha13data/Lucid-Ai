@@ -1,0 +1,697 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LUCID AI — Because College Won’t Teach You This!</title>
+  <link rel="stylesheet" href="styles.css" />
+  
+  <!-- Hero parallax: pointer + scroll-based subtle movement -->
+  <script>
+  (function(){
+    function initParallax(){
+      if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      const layers = Array.from(document.querySelectorAll('.parallax-layer, .laser, .stars'));
+      if (!layers.length) return;
+      let px = 0, py = 0;
+
+      function apply() {
+        const scrollY = window.scrollY || window.pageYOffset;
+        layers.forEach(el => {
+          const depth = parseFloat(el.dataset.depth) || 0.06;
+          const tx = px * depth * 40;
+          const ty = py * depth * 24 + (scrollY * depth * 0.06);
+          el.style.transform = `translate3d(${tx}px, ${ty}px, 0)`;
+        });
+      }
+
+      window.addEventListener('pointermove', (e)=>{
+        const cx = window.innerWidth/2, cy = window.innerHeight/2;
+        px = (e.clientX - cx) / cx; py = (e.clientY - cy) / cy;
+        requestAnimationFrame(apply);
+      });
+
+      window.addEventListener('scroll', ()=>{ requestAnimationFrame(apply); });
+      requestAnimationFrame(apply);
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initParallax);
+    else initParallax();
+  })();
+  </script>
+</head>
+<body>
+  <div class="sparkle-container">
+    <div class="sparkle" style="--tx:80px;--ty:-60px;"></div>
+    <div class="sparkle" style="--tx:-120px;--ty:-90px;"></div>
+    <div class="sparkle" style="--tx:0px;--ty:-120px;"></div>
+  </div>
+
+  <!-- NAV -->
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#top">
+        <span class="brand-icon">⌁</span>
+        <span class="brand-name">LUCID<span class="blue">AI</span></span>
+      </a>
+
+      <nav class="nav-links" id="navLinks">
+        <a href="#features">Features</a>
+        <a href="notes.html">Notes</a>
+        <a href="courses.html">Courses</a>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="#how">How it works</a>
+        <a href="#faqs">FAQs</a>
+        <a class="pill-btn" href="#community">Join Community</a>
+      </nav>
+
+      <button class="burger" id="burger" aria-label="menu">☰</button>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero" id="top">
+    <div class="wrap hero-grid">
+      <div class="hero-left">
+        <div class="mini-label">LUCID AI</div>
+
+        <h1 class="hero-title">
+          Because College<br/>
+          Won’t Teach You <span class="white">This!</span>
+        </h1>
+
+        <p class="hero-sub">
+          Learn industry-relevant technologies, build real-life projects, upskill yourself,
+          and increase your chances of getting hired at top companies.
+        </p>
+
+        <div class="hero-actions">
+          <a class="btn primary" href="login.html">✨ Engineer Now</a>
+          <a class="ghost" href="#how">See How it works</a>
+        </div>
+      </div>
+
+      <div class="hero-right">
+        <div class="parallax">
+          <div class="parallax-layer bg" data-depth="0.04"></div>
+          <div class="stars" data-depth="0.02"></div>
+          <div class="laser" data-depth="0.10"></div>
+          <div class="parallax-layer mid" data-depth="0.16"></div>
+          <div class="parallax-layer fg" data-depth="0.28">
+            <!-- Animated network pulse SVG -->
+            <div class="rocket" data-depth="0.3" style="animation-delay:1s;"></div>
+            <div class="robot" data-depth="0.4" style="animation-delay:0.5s;"></div>
+            <svg class="network-pulse" viewBox="0 0 300 200" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+              <defs>
+                <linearGradient id="g1" x1="0%" x2="100%">
+                  <stop offset="0%" stop-color="#224488" stop-opacity="0.95" />
+                  <stop offset="100%" stop-color="#4466bb" stop-opacity="0.95" />
+                </linearGradient>
+              </defs>
+              <g fill="none" stroke="url(#g1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path class="net-line" d="M18 160 L80 120 L140 150 L220 90 L280 130" />
+                <circle class="node" cx="18" cy="160" r="4" fill="#224488" />
+                <circle class="node" cx="80" cy="120" r="4" fill="#224488" />
+                <circle class="node" cx="140" cy="150" r="4" fill="#224488" />
+                <circle class="node" cx="220" cy="90" r="4" fill="#224488" />
+                <circle class="node" cx="280" cy="130" r="4" fill="#224488" />
+              </g>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ANIMATED VIDEO SECTION -->
+  <section class="video-hero">
+    <div class="wrap center">
+      <div style="max-width:900px;margin:0 auto;">
+        <h2 style="font-size:clamp(28px,3.5vw,48px);margin:0 0 12px;font-weight:950;line-height:1.2;">
+          See What Our Students <span class="blue">Achieve</span>
+        </h2>
+        <p style="color:var(--muted);margin:0 0 40px;font-size:16px;max-width:600px;margin-left:auto;margin-right:auto;">
+          Real problems, real solutions. Watch how learners transform their skills into careers.
+        </p>
+        
+        <!-- Animated Questions Carousel -->
+        <div style="position:relative;height:300px;background:rgba(100,200,255,0.05);border:1px solid rgba(100,200,255,0.1);border-radius:20px;overflow:hidden;padding:40px 20px;">
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
+            <div class="question-rotator" style="text-align:center;width:100%;">
+              <div class="q-item" style="opacity:1;transform:translateY(0);">Can you clear DSA interviews?</div>
+              <div class="q-item" style="opacity:0;transform:translateY(20px);">Is your resume impressive?</div>
+              <div class="q-item" style="opacity:0;transform:translateY(20px);">Do you have real projects?</div>
+              <div class="q-item" style="opacity:0;transform:translateY(20px);">Can you crack system design?</div>
+              <div class="q-item" style="opacity:0;transform:translateY(20px);">Ready to land MAANG?</div>
+            </div>
+          </div>
+          <style>
+            .question-rotator { position: relative; min-height: 80px; }
+            .q-item {
+              position: absolute; left: 0; right: 0;
+              font-size: 28px; font-weight: 900; color: var(--blue);
+              animation: slideQuestion 4s ease-in-out infinite;
+            }
+            .q-item:nth-child(1) { animation-delay: 0s; }
+            .q-item:nth-child(2) { animation-delay: 4s; }
+            .q-item:nth-child(3) { animation-delay: 8s; }
+            .q-item:nth-child(4) { animation-delay: 12s; }
+            .q-item:nth-child(5) { animation-delay: 16s; }
+            @keyframes slideQuestion {
+              0% { opacity: 0; transform: translateY(20px); }
+              10% { opacity: 1; transform: translateY(0); }
+              75% { opacity: 1; transform: translateY(0); }
+              100% { opacity: 0; transform: translateY(-20px); }
+            }
+          </style>
+        </div>
+        
+        <p style="text-align:center;margin-top:12px;font-size:12px;color:var(--muted);">✦ Powered by LUCID AI — Your career transformation starts here</p>
+      </div>
+    </div>
+    <style>
+      .video-hero { padding: 80px 0; background: linear-gradient(180deg, rgba(100,200,255,0.02) 0%, transparent 100%); }
+    </style>
+  </section>
+
+
+  <!-- FEATURES HEADER -->
+  <section class="features-head" id="features">
+    <div class="wrap center">
+      <div class="soft-pill">Features</div>
+      <h2 class="big-head">
+        Smarter Tools for <span class="blue">Learning & Upskilling</span>
+      </h2>
+    </div>
+  </section>
+
+  <!-- FEATURE SLIDES 01–07 -->
+  <main class="slides">
+
+    <!-- 01 -->
+    <section class="slide reveal">
+      <div class="wrap slide-grid">
+        <div class="slide-left">
+          <div class="num">01</div>
+          <div class="kicker">CHART YOUR JOURNEY</div>
+          <div class="line"></div>
+
+          <h3 class="title"><span class="blue">AI Roadmaps</span> — Custom Paths to Mastery</h3>
+          <p class="desc">
+            LUCID AI roadmaps guide you step by step through your coding journey.
+            Each path adapts to your skill level and progress — one guided step at a time.
+          </p>
+        </div>
+
+        <div class="slide-right">
+          <div class="mock">
+            <div class="mock-top">
+              <span>Roadmaps</span><span>Projects</span><span>Problems</span><span>Communities</span><span>Premium</span>
+            </div>
+            <div class="mock-body">
+              <div class="mock-title">Generate <span class="blue">New Roadmap</span></div>
+              <div class="mock-sub">Customize your journey based on your goals</div>
+
+              <div class="steps">
+                <div class="step on"><span>1</span> Select Technology</div>
+                <div class="step"><span>2</span> Duration & Level</div>
+                <div class="step"><span>3</span> Overview & Generate</div>
+              </div>
+
+              <div class="chip-row">
+                <span class="chip on">React</span>
+                <span class="chip">Angular</span>
+                <span class="chip">TypeScript</span>
+                <span class="chip">JavaScript</span>
+                <span class="chip">HTML</span>
+                <span class="chip">CSS</span>
+              </div>
+
+              <div class="mock-footer">
+                <div class="field">Selected: <b class="blue">React</b></div>
+                <button class="small-cta">Next Step →</button>
+              </div>
+            </div>
+          </div>
+          <div class="img-note" style="display:none;">*(You can replace this mock with your screenshot later.)*</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 02 -->
+    <section class="slide alt reveal">
+      <div class="wrap slide-grid">
+        <div class="slide-left">
+          <div class="num">02</div>
+          <div class="kicker">AI PROJECTS HUB</div>
+          <div class="line"></div>
+
+          <h3 class="title"><span class="blue">Experience-First</span> Learning for Future-Ready Skills</h3>
+          <p class="desc">
+            Turn your learning into action with AI-curated projects that simulate real-world challenges.
+            Projects adapt to your level with personalized feedback and growth insights.
+          </p>
+        </div>
+
+        <div class="slide-right">
+          <div class="mock">
+            <div class="mock-body">
+              <div class="mock-title">Choose Your Project</div>
+              <div class="cards">
+                <div class="cardx">
+                  <div class="thumb"></div>
+                  <div class="cardx-title">Personal Portfolio</div>
+                  <div class="tag">CSS</div>
+                  <button class="small-cta wide">Start Project →</button>
+                </div>
+                <div class="cardx">
+                  <div class="thumb"></div>
+                  <div class="cardx-title">Survey Form</div>
+                  <div class="tag">HTML</div>
+                  <button class="small-cta wide">Start Project →</button>
+                </div>
+                <div class="cardx">
+                  <div class="thumb"></div>
+                  <div class="cardx-title">Chat Application</div>
+                  <div class="tag">Node.js</div>
+                  <button class="small-cta wide">Start Project →</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="img-note" style="display:none;">Replace with screenshot anytime.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 03 -->
+    <section class="slide reveal">
+      <div class="wrap slide-grid">
+        <div class="slide-left">
+          <div class="num">03</div>
+          <div class="kicker">DECODE SMARTER</div>
+          <div class="line"></div>
+
+          <h3 class="title"><span class="blue">AI Analyzer</span> — Code Understanding at Scale</h3>
+          <p class="desc">
+            LUCID AI Analyzer scans submissions, detects logic gaps, and provides instant,
+            human-like feedback so you write cleaner, optimized, industry-ready code.
+          </p>
+        </div>
+
+        <div class="slide-right">
+          <div class="mock">
+            <div class="mock-body">
+              <div class="mock-title">Code Analysis Dashboard</div>
+              <div class="mini-stats">
+                <div class="mini-box"><b>Time</b><span>O(n)</span></div>
+                <div class="mini-box"><b>Space</b><span>O(1)</span></div>
+                <div class="mini-box"><b>Issues</b><span>2</span></div>
+              </div>
+              <div class="split">
+                <div class="panel">
+                  <div class="panel-h">Suggestions</div>
+                  <div class="panel-b">
+                    <div class="bullet">Use fast I/O</div>
+                    <div class="bullet">Avoid repeated loops</div>
+                    <div class="bullet">Edge cases missing</div>
+                  </div>
+                </div>
+                <div class="panel">
+                  <div class="panel-h">Editor</div>
+                  <div class="code"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="img-note" style="display:none;">Replace this mock with your actual analyzer screenshot later.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 04 -->
+    <section class="slide alt reveal">
+      <div class="wrap slide-grid">
+        <div class="slide-left">
+          <div class="num">04</div>
+          <div class="kicker">LEARN. TEST. IMPROVE.</div>
+          <div class="line"></div>
+
+          <h3 class="title"><span class="blue">AI Quiz</span> — Smart Learning with Real-Time Insights</h3>
+          <p class="desc">
+            Adaptive quizzes evolve based on your answers, helping you spot weak areas instantly
+            and sharpen concepts with focused practice.
+          </p>
+        </div>
+
+        <div class="slide-right">
+          <div class="mock">
+            <div class="mock-body">
+              <div class="mock-title">Quiz Time</div>
+              <div class="progress"><span style="width:18%"></span></div>
+              <div class="q">
+                Which statement accurately describes a primary benefit of using the <b>with</b> statement in Python?
+              </div>
+              <div class="opt">A. It is exclusively used for file operations.</div>
+              <div class="opt good">B. It guarantees __exit__ is called even if an exception occurs.</div>
+              <div class="opt bad">C. It can only be used with objects that define __init__ and __del__.</div>
+              <div class="opt">D. It automatically closes all opened files at the end of script.</div>
+              <button class="small-cta wide">Next Question →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 05 -->
+    <section class="slide reveal">
+      <div class="wrap slide-grid">
+        <div class="slide-left">
+          <div class="num">05</div>
+          <div class="kicker">CONQUER THE MAANG PATH</div>
+          <div class="line"></div>
+
+          <h3 class="title"><span class="blue">Maangic Mountains</span> — Curated MAANG Company Problems</h3>
+          <p class="desc">
+            Solve handpicked coding problems inspired by real MAANG challenges and boost your confidence
+            with structured tiers and progress tracking.
+          </p>
+        </div>
+
+        <div class="slide-right">
+          <div class="mock gold">
+            <div class="mock-body">
+              <div class="mock-title">MAANGic Mountains</div>
+              <div class="gold-bar"></div>
+              <div class="panel">
+                <div class="panel-h">Foundation Peak: Essential Algorithms</div>
+                <div class="panel-b">
+                  <div class="bar2"><span style="width:30%"></span></div>
+                  <div class="two">
+                    <span>14 solved</span><span>46 total</span>
+                  </div>
+                </div>
+              </div>
+              <div class="two-cards">
+                <div class="tiny-card">
+                  <div class="tiny-title">the housing fair dilemma</div>
+                  <div class="tiny-tags"><span>Easy</span><span>Solved</span><span>75 XP</span></div>
+                </div>
+                <div class="tiny-card">
+                  <div class="tiny-title">the great concert ticket rush</div>
+                  <div class="tiny-tags"><span>Easy</span><span>Solved</span><span>75 XP</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="img-note">Gold theme like your slide.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 06 -->
+    <section class="slide alt reveal">
+      <div class="wrap slide-grid">
+        <div class="slide-left">
+          <div class="num">06</div>
+          <div class="kicker">PROVE YOUR MASTERY</div>
+          <div class="line"></div>
+
+          <h3 class="title"><span class="blue">Certifications</span> — Industry Recognition</h3>
+          <p class="desc">
+            Earn verifiable certifications that showcase your skills and stand out to recruiters
+            and tech companies.
+          </p>
+        </div>
+
+        <div class="slide-right">
+          <div class="mock light">
+            <div class="cert">
+              <div class="cert-head">CERTIFICATE</div>
+              <div class="cert-sub">OF COMPLETION</div>
+              <div class="cert-mid">This Certificate is presented to:</div>
+              <div class="cert-name">Your Name</div>
+              <div class="cert-course">For successfully completing the course in<br/><b>Advance Python</b></div>
+              <div class="cert-sign">
+                <div class="sign-line"></div>
+                <div class="sign-name">Founder</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 07 -->
+    <section class="slide reveal">
+      <div class="wrap slide-grid">
+        <div class="slide-left">
+          <div class="num">07</div>
+          <div class="kicker">LEVEL UP & EARN</div>
+          <div class="line"></div>
+
+          <h3 class="title"><span class="blue">Battlepass Rewards</span> — Unlock Premium Perks</h3>
+          <p class="desc">
+            Complete tasks, earn XP, and unlock rewards — turning your coding journey into a gamified
+            experience that celebrates progress.
+          </p>
+        </div>
+
+        <div class="slide-right">
+          <div class="mock">
+            <div class="mock-body">
+              <div class="mock-title">DSA Adventure Battle Pass</div>
+              <div class="mini-stats">
+                <div class="mini-box"><b>Rewards</b><span>61</span></div>
+                <div class="mini-box"><b>XP</b><span>2160</span></div>
+              </div>
+              <div class="panel">
+                <div class="panel-h">Battle Pass Progress</div>
+                <div class="panel-b">
+                  <div class="bar2"><span style="width:70%"></span></div>
+                  <div class="two"><span>Level 10</span><span>210/300 XP</span></div>
+                </div>
+              </div>
+              <div class="two-cards">
+                <div class="tiny-card">
+                  <div class="tiny-title">Nebula Point</div>
+                  <div class="tiny-tags"><span>Rare</span><span>Unlocked</span></div>
+                </div>
+                <div class="tiny-card">
+                  <div class="tiny-title">Debug Detective</div>
+                  <div class="tiny-tags"><span>Uncommon</span><span>Unlocked</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <section class="section" id="notes">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="pill">Handwritten Notes</span>
+        <h2 class="h2">Your Notes Vault — <span class="blue">Learn Faster</span></h2>
+        <p class="muted">
+          Lucid AI will host your handwritten notes + smart summaries + quick practice prompts.
+          (For now: these are sample slots — you’ll share PDFs and I’ll wire them up.)
+        </p>
+      </div>
+
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-top">
+            <span class="chip">PDF Notes</span>
+            <span class="chip ghost">Beginner Friendly</span>
+          </div>
+          <h3 class="h3">DSA Handwritten Notes</h3>
+          <p class="muted">Topic-wise PDFs + “what to remember” + quick questions.</p>
+          <div class="card-actions">
+            <a class="btn" href="login.html">View inside →</a>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-top">
+            <span class="chip">Revision</span>
+            <span class="chip ghost">Exam Mode</span>
+          </div>
+          <h3 class="h3">CN / DBMS Notes</h3>
+          <p class="muted">Clean definitions + diagrams + last-minute revision.</p>
+          <div class="card-actions">
+            <a class="btn" href="login.html">Open vault →</a>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-top">
+            <span class="chip">Smart Practice</span>
+            <span class="chip ghost">AI Prompts</span>
+          </div>
+          <h3 class="h3">Practice from Notes</h3>
+          <p class="muted">Convert your notes into questions, MCQs, and mini tasks.</p>
+          <div class="card-actions">
+            <a class="btn" href="login.html">Try inside →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="how" id="how">
+    <div class="wrap center">
+      <div class="soft-pill">How It Works</div>
+      <h2 class="big-head">From Beginner to Builder<br/><span class="blue">How LUCID AI Works</span></h2>
+    </div>
+
+    <div class="wrap timeline">
+      <div class="t-line"></div>
+
+      <div class="t-item">
+        <div class="t-dot">01</div>
+        <div class="t-title">Sign Up</div>
+        <div class="t-sub">Start Your Learning Journey</div>
+      </div>
+
+      <div class="t-item">
+        <div class="t-dot">02</div>
+        <div class="t-title">Strategy</div>
+        <div class="t-sub">Choose Your Career Path</div>
+      </div>
+
+      <div class="t-item">
+        <div class="t-dot">03</div>
+        <div class="t-title">Learn & Practice</div>
+        <div class="t-sub">Build Through Real Projects</div>
+      </div>
+
+      <div class="t-item">
+        <div class="t-dot">04</div>
+        <div class="t-title">Track & Achieve</div>
+        <div class="t-sub">Measure, Improve & Earn</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMMUNITY CTA -->
+  <section class="community" id="community">
+    <div class="wrap center">
+      <div class="soft-pill">Join Our Community</div>
+      <h2 class="big-head">Start Building Projects<br/><span class="blue">Today</span></h2>
+      <p class="muted">
+        Join thousands of learners in our vibrant community. Get instant help, share knowledge, and grow together.
+      </p>
+
+      <div class="community-actions">
+        <a class="big-btn" href="#" aria-label="Discord">💬 Discord</a>
+        <a class="big-btn" href="#" aria-label="WhatsApp">🟢 WhatsApp</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="faq" id="faqs">
+    <div class="wrap faq-grid">
+      <div class="faq-left">
+        <div class="faq-brand">LUCID AI</div>
+        <div class="faq-title">FAQs</div>
+      </div>
+
+      <div class="faq-right">
+        <button class="faq-q" data-faq>
+          <span>What is LUCID AI?</span><i>+</i>
+        </button>
+        <div class="faq-a">
+          LUCID AI is an AI-powered learning and project platform UI. This is a frontend layout which you can connect to backend later.
+        </div>
+
+        <button class="faq-q" data-faq>
+          <span>How does the AI Roadmap work?</span><i>+</i>
+        </button>
+        <div class="faq-a">
+          You select a path, skill level, and duration. The system generates step-by-step modules and projects (logic later; UI is ready).
+        </div>
+
+        <button class="faq-q" data-faq>
+          <span>What kind of projects can I build?</span><i>+</i>
+        </button>
+        <div class="faq-a">
+          Web projects, API projects, data dashboards, and interview-prep mini apps—shown as cards with “Start Project”.
+        </div>
+
+        <button class="faq-q" data-faq>
+          <span>Is LUCID AI suitable for beginners?</span><i>+</i>
+        </button>
+        <div class="faq-a">
+          Yes. The UI is designed for beginner → builder flow with progress and guidance screens.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="wrap foot-grid">
+      <div class="foot-left">
+        <div class="brand foot-brand">
+          <span class="brand-icon">⌁</span>
+          <span class="brand-name">LUCID<span class="blue">AI</span></span>
+        </div>
+        <p class="muted">
+          LUCID AI is an AI-driven learning platform UI that turns coding education into real-world skill development.
+          Build, test, and showcase projects — with guidance, feedback, and rewards.
+        </p>
+
+        <div class="socials">
+          <a class="soc" href="#" aria-label="Instagram">⌁</a>
+          <a class="soc" href="#" aria-label="Discord">⌁</a>
+          <a class="soc" href="#" aria-label="Email">⌁</a>
+        </div>
+      </div>
+
+      <div class="foot-col">
+        <h4>Legal</h4>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms and Conditions</a>
+        <a href="#">Refund Policy</a>
+        <a href="#community">Contact Us</a>
+      </div>
+
+      <div class="foot-col">
+        <h4>Contact Us</h4>
+        <div class="muted">Email</div>
+        <div class="email">contact@lucidai.com</div>
+      </div>
+    </div>
+
+    <div class="wrap foot-bottom">
+      <span class="muted">Built with passion. Trusted by learners worldwide.</span>
+      <span class="muted">© <span id="year"></span> LUCID AI — All rights reserved.</span>
+    </div>
+  </footer>
+
+  <script>
+  // generate intermittent sparkles across the page
+  (function(){
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const container = document.querySelector('.sparkle-container');
+    if (!container) return;
+    setInterval(()=>{
+      const s = document.createElement('div');
+      s.className = 'sparkle';
+      const x = Math.random() * window.innerWidth;
+      const y = Math.random() * window.innerHeight * 0.6;
+      s.style.setProperty('--tx', x + 'px');
+      s.style.setProperty('--ty', y + 'px');
+      container.appendChild(s);
+      setTimeout(()=> container.removeChild(s), 1800);
+    }, 400);
+  })();
+  </script>
+  <script src="app.js"></script>
+</body>
+</html>
